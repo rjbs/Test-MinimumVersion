@@ -12,6 +12,11 @@ version 0.001
 
  $Id$
 
+=cut
+
+use vars qw($VERSION);
+$VERSION = '0.001';
+
 =head1 SYNOPSIS
 
 B<Achtung!>
@@ -49,6 +54,17 @@ sub import {
 
   $self->export_to_level(1, $self, 'minimum_version_ok');
 }
+
+=head2 minimum_version_ok
+
+  minimum_version_ok($version);
+
+Given either a version string or a L<version> object, this test passes if none
+of the Perl files in F<t> or F<lib> require a newer perl.
+
+Clearly this routine needs more configurability.
+
+=cut
 
 sub minimum_version_ok {
   my $version = shift;
