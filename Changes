@@ -1,5 +1,8 @@
 Revision history for Test-MinimumVersion
 
+0.004     2007-04-04
+          add prereq for File::Find::Rule::Perl
+
 0.003     2007-04-03
           change how it all interfaces with the programmer
 
