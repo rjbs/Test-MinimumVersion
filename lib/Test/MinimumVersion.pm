@@ -8,14 +8,14 @@ Test::MinimumVersion - does your code require newer perl than you think?
 
 =head1 VERSION
 
-version 0.001
+version 0.002
 
  $Id$
 
 =cut
 
 use vars qw($VERSION);
-$VERSION = '0.001';
+$VERSION = '0.002';
 
 =head1 SYNOPSIS
 
@@ -27,7 +27,6 @@ B<Achtung!>
 Example F<minimum-perl.t>:
 
   #!perl
-  use Test::More tests => 1;
   use Test::MinimumVersion;
   minimum_version_ok('5.008');
 
@@ -41,7 +40,7 @@ use version;
 use Test::Builder;
 require Exporter;
 @Test::MinimumVersion::ISA = qw(Exporter);
-@Test::MinimumVersion::EXPORT = qw(minimum_version_ok);
+@Test::MinimumVersion::EXPORT = qw(minimum_version_ok all_minimum_version_ok);
 
 my $Test = Test::Builder->new;
 
@@ -52,58 +51,91 @@ sub import {
   $Test->exported_to($pack);
   $Test->plan(@_);
 
-  $self->export_to_level(1, $self, 'minimum_version_ok');
+  $self->export_to_level(1, $self, @Test::MinimumVersion::EXPORT);
+}
+
+sub _objectify_version {
+  my ($version) = @_;
+  $version = eval { $version->isa('version') } 
+           ? $version
+           : version->new($version);
 }
 
 =head2 minimum_version_ok
 
-  minimum_version_ok($version);
+  minimum_version_ok($file, $version);
 
-Given either a version string or a L<version> object, this test passes if none
-of the Perl files in F<t> or F<lib> require a newer perl.
-
-Clearly this routine needs more configurability.
+This test passes if the given file does not seem to require any version of perl
+newer than C<$version>, which may be given as a version string or a version
+object.
 
 =cut
 
 sub minimum_version_ok {
-  my $version = shift;
-  my $wanted_minimum = eval { $version->isa('version') } 
-                     ? $version
-                     : version->new($version);
+  my ($file, $version) = @_;
 
-  my @perl_files = File::Find::Rule->perl_file->in(qw(lib t));
+  $version = _objectify_version($version);
 
-  my @violations;
+  my $pmv = Perl::MinimumVersion->new($file);
 
-  for my $file (@perl_files) {
-    my $pmv = Perl::MinimumVersion->new($file);
+  my $explicit_minimum = $pmv->minimum_explicit_version;
+  my $minimum = $pmv->minimum_syntax_version($explicit_minimum);
 
-    next unless my $file_minimum = $pmv->minimum_version;
+  my $is_syntax = 1 if $minimum > $explicit_minimum;
 
-    if ($file_minimum > $wanted_minimum) {
-      push @violations, [ $file, $file_minimum ];
+  $minimum = $explicit_minimum if $explicit_minimum > $minimum;
+
+  if (not defined $minimum) {
+    $Test->ok(1, $file);
+  } elsif ($minimum <= $version) {
+    $Test->ok(1, $file);
+  } else {
+    $Test->ok(0, $file);
+    $Test->diag(
+      "$file requires $minimum "
+      . ($is_syntax ? 'due to syntax' : 'due to explicit requirement')
+    );
+  }
+}
+
+=head2 all_minimum_version_ok
+
+  all_minimum_version_ok($version, \%arg);
+
+Given either a version string or a L<version> object, this routine produces a
+test plan and tests each relevant file with C<minimum_version_ok>.
+
+Relevant files are found by L<File::Find::Rule::Perl>.
+
+C<\%arg> is optional.  Valid arguments are:
+
+  paths - in what paths to look for files; defaults to (t, lib)
+          if it contains files, they will be checked
+
+=cut
+
+sub all_minimum_version_ok {
+  my ($version, $arg) = @_;
+  $arg ||= {};
+  $arg->{paths} ||= [ qw(lib t) ];
+
+  $version = _objectify_version($version);
+
+  my @perl_files;
+  for my $path (@{ $arg->{paths} }) {
+    if (-f $path) {
+      push @perl_files, $path;
+    } else {
+      push @perl_files, File::Find::Rule->perl_file->in($path);
     }
   }
 
-  $Test->ok(
-    !@violations,
-    "no files require a version higher than $wanted_minimum"
-  );
-  $Test->diag(map { "$_->[0] requires version $_->[1]\n" } @violations);
+  $Test->plan(tests => scalar @perl_files);
+
+  minimum_version_ok($_, $version) for @perl_files;
 }
 
 =head1 TODO
-
-=over
-
-=item better docs
-
-=item more params (like which dirs to check)
-
-=item better output (like reason why)
-
-=back
 
 =head1 AUTHOR
 
