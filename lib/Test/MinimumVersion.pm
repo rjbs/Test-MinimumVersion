@@ -8,14 +8,14 @@ Test::MinimumVersion - does your code require newer perl than you think?
 
 =head1 VERSION
 
-version 0.002
+version 0.003
 
  $Id$
 
 =cut
 
 use vars qw($VERSION);
-$VERSION = '0.002';
+$VERSION = '0.003';
 
 =head1 SYNOPSIS
 
@@ -28,7 +28,7 @@ Example F<minimum-perl.t>:
 
   #!perl
   use Test::MinimumVersion;
-  minimum_version_ok('5.008');
+  all_minimum_version_ok('5.008');
 
 =cut
 

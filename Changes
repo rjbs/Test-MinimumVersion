@@ -1,4 +1,7 @@
 Revision history for Test-MinimumVersion
 
+0.003     2007-04-03
+          change how it all interfaces with the programmer
+
 0.001     2007-04-02
           initial release
