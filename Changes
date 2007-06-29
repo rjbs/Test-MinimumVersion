@@ -1,5 +1,8 @@
 Revision history for Test-MinimumVersion
 
+0.005     2007-06-29
+          added all_version_from_metayml_ok
+
 0.004     2007-04-04
           add prereq for File::Find::Rule::Perl
 
