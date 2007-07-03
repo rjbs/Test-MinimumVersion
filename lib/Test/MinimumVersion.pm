@@ -80,9 +80,11 @@ sub minimum_version_ok {
   my $explicit_minimum = $pmv->minimum_explicit_version;
   my $minimum = $pmv->minimum_syntax_version($explicit_minimum);
 
-  my $is_syntax = 1 if $minimum > $explicit_minimum;
+  my $is_syntax = 1
+    if $minimum and $minimum > $explicit_minimum;
 
-  $minimum = $explicit_minimum if $explicit_minimum > $minimum;
+  $minimum = $explicit_minimum
+    if $explicit_minimum and $explicit_minimum > $minimum;
 
   if (not defined $minimum) {
     $Test->ok(1, $file);

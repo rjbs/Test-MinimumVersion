@@ -1,6 +1,7 @@
 Revision history for Test-MinimumVersion
 
-0.005     2007-06-29
+0.005     2007-07-03
+          quash some warnings
           added all_version_from_metayml_ok
 
 0.004     2007-04-04
