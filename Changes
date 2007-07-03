@@ -1,0 +1,14 @@
+Revision history for Test-MinimumVersion
+
+0.005     2007-07-03
+          quash some warnings
+          added all_version_from_metayml_ok
+
+0.004     2007-04-04
+          add prereq for File::Find::Rule::Perl
+
+0.003     2007-04-03
+          change how it all interfaces with the programmer
+
+0.001     2007-04-02
+          initial release
