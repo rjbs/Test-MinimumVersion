@@ -8,14 +8,12 @@ Test::MinimumVersion - does your code require newer perl than you think?
 
 =head1 VERSION
 
-version 0.005
-
- $Id$
+version 0.006
 
 =cut
 
 use vars qw($VERSION);
-$VERSION = '0.005';
+$VERSION = '0.006';
 
 =head1 SYNOPSIS
 
@@ -104,14 +102,16 @@ sub minimum_version_ok {
   all_minimum_version_ok($version, \%arg);
 
 Given either a version string or a L<version> object, this routine produces a
-test plan and tests each relevant file with C<minimum_version_ok>.
+test plan (if there is no plan) and tests each relevant file with
+C<minimum_version_ok>.
 
 Relevant files are found by L<File::Find::Rule::Perl>.
 
 C<\%arg> is optional.  Valid arguments are:
 
-  paths - in what paths to look for files; defaults to (t, lib)
-          if it contains files, they will be checked
+  paths   - in what paths to look for files; defaults to (t, lib)
+            if it contains files, they will be checked
+  no_plan - do not plan the tests about to be run
 
 =cut
 
@@ -131,7 +131,9 @@ sub all_minimum_version_ok {
     }
   }
 
-  $Test->plan(tests => scalar @perl_files);
+  unless ($Test->has_plan or $arg->{no_plan}) {
+    $Test->plan(tests => scalar @perl_files);
+  }
 
   minimum_version_ok($_, $version) for @perl_files;
 }
