@@ -1,5 +1,8 @@
 Revision history for Test-MinimumVersion
 
+0.007     2007-09-17
+          fix t/pod-coverage.t; numerous stupid bugs!
+
 0.006     2007-08-24
           all_version_* methods only plan, now, if there is no plan
           added no_plan option to all_version_* methods
