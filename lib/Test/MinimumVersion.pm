@@ -1,6 +1,6 @@
-
 use strict;
 package Test::MinimumVersion;
+require 5.005; # required by embedded YAML::Tiny
 
 =head1 NAME
 
@@ -109,7 +109,8 @@ Relevant files are found by L<File::Find::Rule::Perl>.
 
 C<\%arg> is optional.  Valid arguments are:
 
-  paths   - in what paths to look for files; defaults to (t, lib)
+  paths   - in what paths to look for files; defaults to (t, lib, xt/smoke,
+            and any .pm or .PL files in the current working directory)
             if it contains files, they will be checked
   no_plan - do not plan the tests about to be run
 
