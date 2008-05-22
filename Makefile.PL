@@ -7,5 +7,5 @@ requires('Perl::MinimumVersion'   => 0.15);  # accuracy
 requires('Test::Builder'          => 0.000); # minimum unknown
 requires('version'                => 0.70);  # culted from Perl::MinimumVersion
 
-auto_manifest;
+extra_tests;
 WriteAll();
