@@ -181,43 +181,24 @@ under the same terms as Perl itself.
 
 ### BEGIN EMBEDDED YAML::Tiny
 package Test::MinimumVersion::YAMLTiny;
-use 5.005;
 use strict;
-use vars qw{$VERSION @ISA @EXPORT_OK $errstr};
 BEGIN {
- $VERSION = '1.12';
- $errstr = '';
-
-require Exporter;
- @ISA = qw{ Exporter  };
- @EXPORT_OK = qw{
-		Load     Dump
-		LoadFile DumpFile
-		freeze   thaw
-		};
+ require 5.004;
+ $YAML::Tiny::VERSION = '1.32';
+ $YAML::Tiny::errstr = '';
 }
-my %ERROR = (
- YAML_PARSE_ERR_NO_FINAL_NEWLINE => "Stream does not end with newline character",
-);
-my %NO = (
- '%' => 'YAML::Tiny does not support directives',
- '&' => 'YAML::Tiny does not support anchors',
- '*' => 'YAML::Tiny does not support aliases',
- '?' => 'YAML::Tiny does not support explicit mapping keys',
- ':' => 'YAML::Tiny does not support explicit mapping values',
- '!' => 'YAML::Tiny does not support explicit tags',
-);
 my $ESCAPE_CHAR = '[\\x00-\\x08\\x0b-\\x0d\\x0e-\\x1f\"\n]';
-my @UNPRINTABLE = qw(z    x01  x02  x03  x04  x05  x06  a
-                     x08  t    n    v    f    r    x0e  x0f
-                     x10  x11  x12  x13  x14  x15  x16  x17
-                     x18  x19  x1a  e    x1c  x1d  x1e  x1f
-                    );
+my @UNPRINTABLE = qw(
+	z    x01  x02  x03  x04  x05  x06  a
+	x08  t    n    v    f    r    x0e  x0f
+	x10  x11  x12  x13  x14  x15  x16  x17
+	x18  x19  x1a  e    x1c  x1d  x1e  x1f
+);
 my %UNESCAPES = (
  z => "\x00", a => "\x07", t => "\x09",
  n => "\x0a", v => "\x0b", f => "\x0c",
  r => "\x0d", e => "\x1b", '\\' => '\\',
- );
+);
 sub new {
  my $class = shift;
  bless [ @_ ], $class;
@@ -229,9 +210,14 @@ sub read {
  return $class->_error( "'$file' is a directory, not a file" ) unless -f _;
  return $class->_error( "Insufficient permissions to read '$file'" ) unless -r _;
  local $/ = undef;
- open CFG, $file or return $class->_error( "Failed to open file '$file': $!" );
+ local *CFG;
+ unless ( open(CFG, $file) ) {
+ return $class->_error( "Failed to open file '$file': $!" );
+ }
  my $contents = <CFG>;
- close CFG;
+ unless ( close(CFG) ) {
+ return $class->_error( "Failed to close file '$file': $!" );
+ }
 
 $class->read_string( $contents );
 }
@@ -241,68 +227,62 @@ sub read_string {
  return undef unless defined $_[0];
  return $self unless length $_[0];
  unless ( $_[0] =~ /[\012\015]+$/ ) {
- return $class->_error('YAML_PARSE_ERR_NO_FINAL_NEWLINE');
+ return $class->_error("Stream does not end with newline character");
  }
  my @lines = grep { ! /^\s*(?:\#.*)?$/ }
  split /(?:\015{1,2}\012|\015|\012)/, shift;
+ @lines and $lines[0] =~ /^\%YAML[: ][\d\.]+.*$/ and shift @lines;
  while ( @lines ) {
  if ( $lines[0] =~ /^---\s*(?:(.+)\s*)?$/ ) {
  shift @lines;
- if ( defined $1 and $1 !~ /^[#%]YAML:[\d\.]+$/ ) {
+ if ( defined $1 and $1 !~ /^(?:\#.+|\%YAML[: ][\d\.]+)$/ ) {
  push @$self, $self->_read_scalar( "$1", [ undef ], \@lines );
  next;
  }
  }
 
-if ( ! @lines or $lines[0] =~ /^---\s*(?:(.+)\s*)?$/ ) {
+if ( ! @lines or $lines[0] =~ /^(?:---|\.\.\.)/ ) {
  push @$self, undef;
+ while ( @lines and $lines[0] !~ /^---/ ) {
+ shift @lines;
+ }
 
 } elsif ( $lines[0] =~ /^\s*\-/ ) {
  my $document = [ ];
  push @$self, $document;
  $self->_read_array( $document, [ 0 ], \@lines );
 
-} elsif ( $lines[0] =~ /^(\s*)\w/ ) {
+} elsif ( $lines[0] =~ /^(\s*)\S/ ) {
  my $document = { };
  push @$self, $document;
  $self->_read_hash( $document, [ length($1) ], \@lines );
 
 } else {
- die "CODE INCOMPLETE";
+ die "YAML::Tiny does not support the line '$lines[0]'";
  }
  }
 
 $self;
 }
-sub _check_support {
- my $errstr = $NO{substr($_[1], 0, 1)};
- Carp::croak($errstr) if $errstr;
-}
 sub _read_scalar {
  my ($self, $string, $indent, $lines) = @_;
  $string =~ s/\s*$//;
  return undef if $string eq '~';
- if ( $string =~ /^'(.*?)'$/ ) {
+ if ( $string =~ /^\'(.*?)\'$/ ) {
  return '' unless defined $1;
  my $rv = $1;
- $rv =~ s/''/'/g;
+ $rv =~ s/\'\'/\'/g;
  return $rv;
  }
- if ( $string =~ /^"((?:\\.|[^"])*)"$/ ) {
+ if ( $string =~ /^\"((?:\\.|[^\"])*)\"$/ ) {
  my $str = $1;
  $str =~ s/\\"/"/g;
  $str =~ s/\\([never\\fartz]|x([0-9a-fA-F]{2}))/(length($1)>1)?pack("H2",$2):$UNESCAPES{$1}/gex;
  return $str;
  }
- if ( $string =~ /^['"]/ ) {
- die "YAML::Tiny does not support multi-line quoted scalars";
- }
- if ( $string eq '{}' ) {
- return {};
- }
- if ( $string eq '[]' ) {
- return [];
- }
+ die "Unsupported YAML feature" if $string =~ /^['"!&]/;
+ return {} if $string eq '{}';
+ return [] if $string eq '[]';
  return $string unless $string =~ /^[>|]/;
  die "Multi-line scalar content missing" unless @$lines;
  $lines->[0] =~ /^(\s*)/;
@@ -325,7 +305,12 @@ sub _read_array {
  my ($self, $array, $indent, $lines) = @_;
 
 while ( @$lines ) {
- return 1 if $lines->[0] =~ /^---\s*(?:(.+)\s*)?$/;
+ if ( $lines->[0] =~ /^(?:---|\.\.\.)/ ) {
+ while ( @$lines and $lines->[0] !~ /^---/ ) {
+ shift @$lines;
+ }
+ return 1;
+ }
  $lines->[0] =~ /^(\s*)/;
  if ( length($1) < $indent->[-1] ) {
  return 1;
@@ -333,7 +318,7 @@ while ( @$lines ) {
  die "Hash line over-indented";
  }
 
-if ( $lines->[0] =~ /^(\s*\-\s+)[^'"]\S*\s*:(?:\s+|$)/ ) {
+if ( $lines->[0] =~ /^(\s*\-\s+)[^\'\"]\S*\s*:(?:\s+|$)/ ) {
  my $indent2 = length("$1");
  $lines->[0] =~ s/-/ /;
  push @$array, { };
@@ -358,16 +343,16 @@ if ( $lines->[0] =~ /^(\s*\-\s+)[^'"]\S*\s*:(?:\s+|$)/ ) {
  $self->_read_array( $array->[-1], [ @$indent, $indent2 ], $lines );
  }
 
-} elsif ( $lines->[0] =~ /^(\s*)\w/ ) {
+} elsif ( $lines->[0] =~ /^(\s*)\S/ ) {
  push @$array, { };
  $self->_read_hash( $array->[-1], [ @$indent, length("$1") ], $lines );
 
 } else {
- die "CODE INCOMPLETE";
+ die "YAML::Tiny does not support the line '$lines->[0]'";
  }
 
 } else {
- die "CODE INCOMPLETE";
+ die "YAML::Tiny does not support the line '$lines->[0]'";
  }
  }
 
@@ -377,15 +362,21 @@ sub _read_hash {
  my ($self, $hash, $indent, $lines) = @_;
 
 while ( @$lines ) {
- return 1 if $lines->[0] =~ /^---\s*(?:(.+)\s*)?$/;
- $lines->[0] =~/^(\s*)/;
+ if ( $lines->[0] =~ /^(?:---|\.\.\.)/ ) {
+ while ( @$lines and $lines->[0] !~ /^---/ ) {
+ shift @$lines;
+ }
+ return 1;
+ }
+ $lines->[0] =~ /^(\s*)/;
  if ( length($1) < $indent->[-1] ) {
  return 1;
  } elsif ( length($1) > $indent->[-1] ) {
  die "Hash line over-indented";
  }
- unless ( $lines->[0] =~ s/^\s*([^'"][^\n]*?)\s*:(\s+|$)// ) {
- die "Bad hash line";
+ unless ( $lines->[0] =~ s/^\s*([^\'\" ][^\n]*?)\s*:(\s+|$)// ) {
+ die "Unsupported YAML feature" if $lines->[0] =~ /^\s*[?'"]/;
+ die "Bad or unsupported hash line";
  }
  my $key = $1;
  if ( length $lines->[0] ) {
@@ -423,6 +414,8 @@ sub write {
  );
  print CFG $self->write_string;
  close CFG;
+
+return 1;
 }
 sub write_string {
  my $self = shift;
@@ -435,12 +428,20 @@ sub write_string {
  } elsif ( ! ref $cursor ) {
  $lines[-1] .= ' ' . $self->_write_scalar( $cursor );
  } elsif ( ref $cursor eq 'ARRAY' ) {
- push @lines, $self->_write_array( $indent, $cursor );
+ unless ( @$cursor ) {
+ $lines[-1] .= ' []';
+ next;
+ }
+ push @lines, $self->_write_array( $cursor, $indent, {} );
  } elsif ( ref $cursor eq 'HASH' ) {
- push @lines, $self->_write_hash( $indent, $cursor );
+ unless ( %$cursor ) {
+ $lines[-1] .= ' {}';
+ next;
+ }
+ push @lines, $self->_write_hash( $cursor, $indent, {} );
 
 } else {
- die "CODE INCOMPLETE";
+ Carp::croak("Cannot serialize " . ref($cursor));
  }
  }
 
@@ -453,98 +454,110 @@ sub _write_scalar {
  $str =~ s/\\/\\\\/g;
  $str =~ s/"/\\"/g;
  $str =~ s/\n/\\n/g;
- $str =~ s/([\x00-\x1f])/\\$UNPRINTABLE[ord($1)]/ge;
+ $str =~ s/([\x00-\x1f])/\\$UNPRINTABLE[ord($1)]/g;
  return qq{"$str"};
  }
- if ( length($str) == 0 or $str =~ /\s/ ) {
- $str =~ s/'/''/;
+ if ( length($str) == 0 or $str =~ /(?:^\W|\s)/ ) {
+ $str =~ s/\'/\'\'/;
  return "'$str'";
  }
  return $str;
 }
 sub _write_array {
- my ($self, $indent, $array) = @_;
+ my ($self, $array, $indent, $seen) = @_;
+ if ( $seen->{refaddr($array)}++ ) {
+ die "YAML::Tiny does not support circular references";
+ }
  my @lines = ();
  foreach my $el ( @$array ) {
  my $line = ('  ' x $indent) . '-';
- if ( ! ref $el ) {
+ my $type = ref $el;
+ if ( ! $type ) {
  $line .= ' ' . $self->_write_scalar( $el );
  push @lines, $line;
 
-} elsif ( ref $el eq 'ARRAY' ) {
+} elsif ( $type eq 'ARRAY' ) {
  if ( @$el ) {
  push @lines, $line;
- push @lines, $self->_write_array( $indent + 1, $el );
+ push @lines, $self->_write_array( $el, $indent + 1, $seen );
  } else {
  $line .= ' []';
  push @lines, $line;
  }
 
-} elsif ( ref $el eq 'HASH' ) {
+} elsif ( $type eq 'HASH' ) {
  if ( keys %$el ) {
  push @lines, $line;
- push @lines, $self->_write_hash( $indent + 1, $el );
+ push @lines, $self->_write_hash( $el, $indent + 1, $seen );
  } else {
  $line .= ' {}';
  push @lines, $line;
  }
 
 } else {
- die "CODE INCOMPLETE";
+ die "YAML::Tiny does not support $type references";
  }
  }
 
 @lines;
 }
 sub _write_hash {
- my ($self, $indent, $hash) = @_;
+ my ($self, $hash, $indent, $seen) = @_;
+ if ( $seen->{refaddr($hash)}++ ) {
+ die "YAML::Tiny does not support circular references";
+ }
  my @lines = ();
  foreach my $name ( sort keys %$hash ) {
  my $el = $hash->{$name};
  my $line = ('  ' x $indent) . "$name:";
- if ( ! ref $el ) {
+ my $type = ref $el;
+ if ( ! $type ) {
  $line .= ' ' . $self->_write_scalar( $el );
  push @lines, $line;
 
-} elsif ( ref $el eq 'ARRAY' ) {
+} elsif ( $type eq 'ARRAY' ) {
  if ( @$el ) {
  push @lines, $line;
- push @lines, $self->_write_array( $indent + 1, $el );
+ push @lines, $self->_write_array( $el, $indent + 1, $seen );
  } else {
  $line .= ' []';
  push @lines, $line;
  }
 
-} elsif ( ref $el eq 'HASH' ) {
+} elsif ( $type eq 'HASH' ) {
  if ( keys %$el ) {
  push @lines, $line;
- push @lines, $self->_write_hash( $indent + 1, $el );
+ push @lines, $self->_write_hash( $el, $indent + 1, $seen );
  } else {
  $line .= ' {}';
  push @lines, $line;
  }
 
 } else {
- die "CODE INCOMPLETE";
+ die "YAML::Tiny does not support $type references";
  }
  }
 
 @lines;
 }
 sub _error {
- $errstr = $ERROR{$_[1]} ? "$ERROR{$_[1]} ($_[1])" : $_[1];
+ $YAML::Tiny::errstr = $_[1];
  undef;
 }
 sub errstr {
- $errstr;
+ $YAML::Tiny::errstr;
 }
 sub Dump {
- Test::MinimumVersion::YAMLTiny->new(@_)->write_string;
+ YAML::Tiny->new(@_)->write_string;
 }
 sub Load {
- my $self = Test::MinimumVersion::YAMLTiny->read_string(@_)
+ my $self = YAML::Tiny->read_string(@_)
  or Carp::croak("Failed to load YAML document from string");
+ if ( wantarray ) {
  return @$self;
+ } else {
+ return $self->[-1];
+ }
 }
 BEGIN {
  *freeze = *Dump;
@@ -552,12 +565,26 @@ BEGIN {
 }
 sub DumpFile {
  my $file = shift;
- Test::MinimumVersion::YAMLTiny->new(@_)->write($file);
+ YAML::Tiny->new(@_)->write($file);
 }
 sub LoadFile {
- my $self = Test::MinimumVersion::YAMLTiny->read($_[0])
+ my $self = YAML::Tiny->read($_[0])
  or Carp::croak("Failed to load YAML document from '" . ($_[0] || '') . "'");
+ if ( wantarray ) {
  return @$self;
+ } else {
+ return $self->[-1];
+ }
+}
+BEGIN {
+ eval {
+ require Scalar::Util;
+ };
+ if ( $@ ) {
+ eval <<'END_PERL';
+ } else {
+ Scalar::Util->import('refaddr');
+ }
 }
 1;
 ### END EMBEDDED YAML::Tiny

@@ -1,5 +1,9 @@
 Revision history for Test-MinimumVersion
 
+0.008     2008-05-22
+          change default search locations for code to test
+          packaging updates
+
 0.007     2007-09-17
           fix t/pod-coverage.t; numerous stupid bugs!
 
