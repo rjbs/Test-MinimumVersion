@@ -167,6 +167,8 @@ sub all_minimum_version_from_metayml_ok {
 
 =head1 TODO
 
+Uh, this code has no tests.  I'm really sorry.  I'll get around to it.
+
 =head1 AUTHOR
 
 Ricardo SIGNES, C<< <rjbs at cpan.org> >>
@@ -583,6 +585,19 @@ BEGIN {
  };
  if ( $@ ) {
  eval <<'END_PERL';
+sub refaddr {
+  my $pkg = ref($_[0]) or return undef;
+  if (!!UNIVERSAL::can($_[0], 'can')) {
+    bless $_[0], 'Scalar::Util::Fake';
+  } else {
+    $pkg = undef;
+  }
+  "$_[0]" =~ /0x(\w+)/;
+  my $i = do { local $^W; hex $1 };
+  bless $_[0], $pkg if defined $pkg;
+  $i;
+}
+END_PERL
  } else {
  Scalar::Util->import('refaddr');
  }
