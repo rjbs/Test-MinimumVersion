@@ -118,7 +118,7 @@ C<\%arg> is optional.  Valid arguments are:
 sub all_minimum_version_ok {
   my ($version, $arg) = @_;
   $arg ||= {};
-  $arg->{paths} ||= [ qw(lib t) ];
+  $arg->{paths} ||= [ qw(lib t xt/smoke), glob ("*.pm"), glob ("*.PL") ];
 
   $version = _objectify_version($version);
 
@@ -126,7 +126,7 @@ sub all_minimum_version_ok {
   for my $path (@{ $arg->{paths} }) {
     if (-f $path) {
       push @perl_files, $path;
-    } else {
+    } elsif (-d $path) {
       push @perl_files, File::Find::Rule->perl_file->in($path);
     }
   }
