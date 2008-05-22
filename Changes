@@ -2,6 +2,7 @@ Revision history for Test-MinimumVersion
 
 0.008     2008-05-22
           change default search locations for code to test
+          update embedded YAML::Tiny
           packaging updates
 
 0.007     2007-09-17
