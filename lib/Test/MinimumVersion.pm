@@ -8,12 +8,12 @@ Test::MinimumVersion - does your code require newer perl than you think?
 
 =head1 VERSION
 
-version 0.007
+version 0.008
 
 =cut
 
 use vars qw($VERSION);
-$VERSION = '0.007';
+$VERSION = '0.008';
 
 =head1 SYNOPSIS
 
