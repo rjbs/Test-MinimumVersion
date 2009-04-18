@@ -8,12 +8,12 @@ Test::MinimumVersion - does your code require newer perl than you think?
 
 =head1 VERSION
 
-version 0.008
+version 0.009
 
 =cut
 
 use vars qw($VERSION);
-$VERSION = '0.008';
+$VERSION = '0.009';
 
 =head1 SYNOPSIS
 
@@ -194,7 +194,7 @@ package Test::MinimumVersion::YAMLTiny;
 use strict;
 BEGIN {
  require 5.004;
- $YAML::Tiny::VERSION = '1.32';
+ # VERSION 1.32;
  $YAML::Tiny::errstr = '';
 }
 my $ESCAPE_CHAR = '[\\x00-\\x08\\x0b-\\x0d\\x0e-\\x1f\"\n]';
