@@ -27,7 +27,7 @@ Example F<minimum-perl.t>:
 
 use File::Find::Rule;
 use File::Find::Rule::Perl;
-use Perl::MinimumVersion;
+use Perl::MinimumVersion 1.20;
 use version;
 
 use Test::Builder;
@@ -84,6 +84,8 @@ sub minimum_version_ok {
   $minimum = $explicit_minimum
     if $explicit_minimum and $explicit_minimum > $minimum;
 
+  my %min = $pmv->version_markers;
+
   if (not defined $minimum) {
     $Test->ok(1, $file);
   } elsif ($minimum <= $version) {
@@ -94,6 +96,11 @@ sub minimum_version_ok {
       "$file requires $minimum "
       . ($is_syntax ? 'due to syntax' : 'due to explicit requirement')
     );
+
+    if ($is_syntax and my $markers = $min{ $minimum }) {
+      $Test->diag("version markers for $minimum:");
+      $Test->diag("- $_ ") for @$markers;
+    }
   }
 }
 
