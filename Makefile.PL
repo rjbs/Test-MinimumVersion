@@ -1,4 +1,5 @@
 use inc::Module::Install;
+jsonmeta;
 
 all_from  ('lib/Test/MinimumVersion.pm');
 
@@ -9,4 +10,5 @@ requires('version'                => 0.70);  # culted from Perl::MinimumVersion
 
 extra_tests;
 auto_manifest;
+
 WriteAll();
