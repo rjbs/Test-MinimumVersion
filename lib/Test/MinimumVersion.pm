@@ -39,11 +39,11 @@ require Exporter;
   all_minimum_version_from_metayml_ok
 );
 
-my $Test = Test::Builder->new;
-
 sub import {
   my($self) = shift;
   my $pack = caller;
+
+  my $Test = Test::Builder->new;
 
   $Test->exported_to($pack);
   $Test->plan(@_);
@@ -70,6 +70,8 @@ object.
 
 sub minimum_version_ok {
   my ($file, $version) = @_;
+
+  my $Test = Test::Builder->new;
 
   $version = _objectify_version($version);
 
@@ -128,6 +130,8 @@ sub all_minimum_version_ok {
   $arg ||= {};
   $arg->{paths} ||= [ qw(lib t xt/smoke), glob ("*.pm"), glob ("*.PL") ];
 
+  my $Test = Test::Builder->new;
+
   $version = _objectify_version($version);
 
   my @perl_files;
@@ -160,6 +164,8 @@ with that version.
 sub all_minimum_version_from_metayml_ok {
   my ($arg) = @_;
   $arg ||= {};
+
+  my $Test = Test::Builder->new;
 
   $Test->plan(skip_all => "META.yml could not be found")
     unless -f 'META.yml' and -r _;
