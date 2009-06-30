@@ -1,5 +1,8 @@
 Revision history for Test-MinimumVersion
 
+0.011     2009-06-29
+          update code to behave better with subtests
+
 0.010     2009-05-31
           attempt to not croak on empty files
 
