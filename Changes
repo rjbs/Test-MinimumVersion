@@ -1,5 +1,8 @@
 Revision history for Test-MinimumVersion
 
+0.013     2010-01-17
+          declare the dependency on YAML::Tiny (thanks, jawnsy)
+
 0.012     2010-01-16
           stop inlining YAML::Tiny
           add a very, very, very basic test
