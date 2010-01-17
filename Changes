@@ -1,5 +1,9 @@
 Revision history for Test-MinimumVersion
 
+0.012     2010-01-16
+          stop inlining YAML::Tiny
+          add a very, very, very basic test
+
 0.011     2009-06-29
           update code to behave better with subtests
 
