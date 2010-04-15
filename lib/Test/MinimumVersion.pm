@@ -66,7 +66,7 @@ sub minimum_version_ok {
 
   my $pmv = Perl::MinimumVersion->new($file);
 
-  my $explicit_minimum = $pmv->minimum_explicit_version;
+  my $explicit_minimum = $pmv->minimum_explicit_version || 0;
   my $minimum = $pmv->minimum_syntax_version($explicit_minimum);
 
   my $is_syntax = 1

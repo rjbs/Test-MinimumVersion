@@ -1,5 +1,9 @@
 Revision history for Test-MinimumVersion
 
+{{$NEXT}}
+          convert to dzil, fix a prereq num/str conversion stupidity
+          fix bug when comparing versions to undef
+
 0.013     2010-01-17
           declare the dependency on YAML::Tiny (thanks, jawnsy)
 
