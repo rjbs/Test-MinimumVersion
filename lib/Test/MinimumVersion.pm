@@ -3,18 +3,7 @@ use strict;
 use warnings;
 package Test::MinimumVersion;
 use base 'Exporter';
-
-=head1 NAME
-
-Test::MinimumVersion - does your code require newer perl than you think?
-
-=head1 VERSION
-
-version 0.013
-
-=cut
-
-our $VERSION = '0.013';
+# ABSTRACT: does your code require newer perl than you think?
 
 =head1 SYNOPSIS
 
@@ -28,9 +17,9 @@ Example F<minimum-perl.t>:
 
 use File::Find::Rule;
 use File::Find::Rule::Perl;
-use Perl::MinimumVersion 1.20;
-use YAML::Tiny;
-use version;
+use Perl::MinimumVersion 1.20; # accuracy
+use YAML::Tiny 1.40; # bug fixes
+use version 0.70;
 
 use Test::Builder;
 @Test::MinimumVersion::EXPORT = qw(
@@ -58,7 +47,7 @@ sub _objectify_version {
            : version->new($version);
 }
 
-=head2 minimum_version_ok
+=func minimum_version_ok
 
   minimum_version_ok($file, $version);
 
@@ -106,7 +95,7 @@ sub minimum_version_ok {
   }
 }
 
-=head2 all_minimum_version_ok
+=func all_minimum_version_ok
 
   all_minimum_version_ok($version, \%arg);
 
@@ -150,7 +139,7 @@ sub all_minimum_version_ok {
   minimum_version_ok($_, $version) for @perl_files;
 }
 
-=head2 all_minimum_version_from_metayml_ok
+=func all_minimum_version_from_metayml_ok
 
   all_minimum_version_from_metayml_ok(\%arg);
 
@@ -177,22 +166,5 @@ sub all_minimum_version_from_metayml_ok {
 
   all_minimum_version_ok($version, $arg);
 }
-
-=head1 TODO
-
-Uh, this code has no tests.  I'm really sorry.  I'll get around to it.
-
-=head1 AUTHOR
-
-Ricardo SIGNES, C<< <rjbs at cpan.org> >>
-
-=head1 COPYRIGHT & LICENSE
-
-Copyright 2007, Ricardo SIGNES.
-
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
-
-=cut
 
 1;
