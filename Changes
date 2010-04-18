@@ -1,6 +1,7 @@
 Revision history for Test-MinimumVersion
 
 {{$NEXT}}
+          more "comparison to undef" bugs fixed (thanks, Tux)
 
 0.101050  2010-04-15 15:31:56 America/New_York
           convert to dzil, fix a prereq num/str conversion stupidity
