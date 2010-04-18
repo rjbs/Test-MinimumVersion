@@ -67,7 +67,7 @@ sub minimum_version_ok {
   my $pmv = Perl::MinimumVersion->new($file);
 
   my $explicit_minimum = $pmv->minimum_explicit_version || 0;
-  my $minimum = $pmv->minimum_syntax_version($explicit_minimum);
+  my $minimum = $pmv->minimum_syntax_version($explicit_minimum) || 0;
 
   my $is_syntax = 1
     if $minimum and $minimum > $explicit_minimum;
@@ -77,9 +77,7 @@ sub minimum_version_ok {
 
   my %min = $pmv->version_markers;
 
-  if (not defined $minimum) {
-    $Test->ok(1, $file);
-  } elsif ($minimum <= $version) {
+  if ($minimum <= $version) {
     $Test->ok(1, $file);
   } else {
     $Test->ok(0, $file);
