@@ -1,8 +1,9 @@
-use 5.006;
+#use 5.008;
 use strict;
 use warnings;
 package Test::MinimumVersion;
-use base 'Exporter';
+#use base 'Exporter';
+use parent 0.225 qw(Exporter);
 # ABSTRACT: does your code require newer perl than you think?
 
 =head1 SYNOPSIS
@@ -15,13 +16,13 @@ Example F<minimum-perl.t>:
 
 =cut
 
-use File::Find::Rule;
-use File::Find::Rule::Perl;
-use Perl::MinimumVersion 1.20; # accuracy
+use File::Find::Rule 0.33;
+use File::Find::Rule::Perl 1.13;
+use Perl::MinimumVersion 1.32; # accuracy
 use YAML::Tiny 1.40; # bug fixes
-use version 0.70;
+use version 0.9902;
 
-use Test::Builder;
+use Test::Builder 0.98;
 @Test::MinimumVersion::EXPORT = qw(
   minimum_version_ok
   all_minimum_version_ok
