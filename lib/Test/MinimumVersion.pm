@@ -1,9 +1,18 @@
-use 5.006;
+use 5.008009;
 use strict;
 use warnings;
+
 package Test::MinimumVersion;
-use base 'Exporter';
+
+BEGIN {
+  $Test::MinimumVersion::VERSION = '0.101088';
+}
+
+#use base 'Exporter';
+use parent 0.225 qw(Exporter);
+
 # ABSTRACT: does your code require newer perl than you think?
+#use Data::Printer {caller_info => 1, colored => 1,};
 
 =head1 SYNOPSIS
 
@@ -15,21 +24,23 @@ Example F<minimum-perl.t>:
 
 =cut
 
-use File::Find::Rule;
-use File::Find::Rule::Perl;
-use Perl::MinimumVersion 1.20; # accuracy
-use YAML::Tiny 1.40; # bug fixes
-use version 0.70;
+use File::Find::Rule 0.33;
+use File::Find::Rule::Perl 1.13;
+use Perl::MinimumVersion 1.32;    # accuracy
+use version 0.9902;
+use Parse::CPAN::Meta 1.4405;
 
-use Test::Builder;
+use Test::Builder 0.98;
 @Test::MinimumVersion::EXPORT = qw(
   minimum_version_ok
   all_minimum_version_ok
   all_minimum_version_from_metayml_ok
+  all_minimum_version_from_metajson_ok
+  all_minimum_version_from_meta2_ok
 );
 
 sub import {
-  my($self) = shift;
+  my ($self) = shift;
   my $pack = caller;
 
   my $Test = Test::Builder->new;
@@ -42,9 +53,8 @@ sub import {
 
 sub _objectify_version {
   my ($version) = @_;
-  $version = eval { $version->isa('version') } 
-           ? $version
-           : version->new($version);
+  $version
+    = eval { $version->isa('version') } ? $version : version->new($version);
 }
 
 =func minimum_version_ok
@@ -69,8 +79,7 @@ sub minimum_version_ok {
   my $explicit_minimum = $pmv->minimum_explicit_version || 0;
   my $minimum = $pmv->minimum_syntax_version($explicit_minimum) || 0;
 
-  my $is_syntax = 1
-    if $minimum and $minimum > $explicit_minimum;
+  my $is_syntax = 1 if $minimum and $minimum > $explicit_minimum;
 
   $minimum = $explicit_minimum
     if $explicit_minimum and $explicit_minimum > $minimum;
@@ -79,14 +88,13 @@ sub minimum_version_ok {
 
   if ($minimum <= $version) {
     $Test->ok(1, $file);
-  } else {
+  }
+  else {
     $Test->ok(0, $file);
-    $Test->diag(
-      "$file requires $minimum "
-      . ($is_syntax ? 'due to syntax' : 'due to explicit requirement')
-    );
+    $Test->diag("$file requires $minimum "
+        . ($is_syntax ? 'due to syntax' : 'due to explicit requirement'));
 
-    if ($is_syntax and my $markers = $min{ $minimum }) {
+    if ($is_syntax and my $markers = $min{$minimum}) {
       $Test->diag("version markers for $minimum:");
       $Test->diag("- $_ ") for @$markers;
     }
@@ -115,17 +123,18 @@ C<\%arg> is optional.  Valid arguments are:
 sub all_minimum_version_ok {
   my ($version, $arg) = @_;
   $arg ||= {};
-  $arg->{paths} ||= [ qw(lib t xt/smoke), glob ("*.pm"), glob ("*.PL") ];
+  $arg->{paths} ||= [qw( script bin lib t )];
 
   my $Test = Test::Builder->new;
 
   $version = _objectify_version($version);
 
   my @perl_files;
-  for my $path (@{ $arg->{paths} }) {
+  for my $path (@{$arg->{paths}}) {
     if (-f $path and -s $path) {
       push @perl_files, $path;
-    } elsif (-d $path) {
+    }
+    elsif (-d $path) {
       push @perl_files, File::Find::Rule->perl_file->in($path);
     }
   }
@@ -141,8 +150,8 @@ sub all_minimum_version_ok {
 
   all_minimum_version_from_metayml_ok(\%arg);
 
-This routine checks F<META.yml> for an entry in F<requires> for F<perl>.  If no
-META.yml file or no perl version is found, all tests are skipped.  If a version
+This routine checks F<META.yml> for an entry in F<{requires}{perl}>. If no
+META.yml file or no perl version is found, all tests are skipped. If a version
 is found, the test proceeds as if C<all_minimum_version_ok> had been called
 with that version.
 
@@ -157,12 +166,67 @@ sub all_minimum_version_from_metayml_ok {
   $Test->plan(skip_all => "META.yml could not be found")
     unless -f 'META.yml' and -r _;
 
-  my $documents = YAML::Tiny->read('META.yml');
+  my $metadata_structure = Parse::CPAN::Meta->load_file('META.yml');
 
   $Test->plan(skip_all => "no minimum perl version could be determined")
-    unless my $version = $documents->[0]->{requires}{perl};
+    unless my $version = $metadata_structure->{requires}{perl};
 
   all_minimum_version_ok($version, $arg);
+}
+
+=func all_minimum_version_from_metajson_ok
+
+  all_minimum_version_from_metajson_ok(\%arg);
+
+This routine checks F<META.json> for an entry in F<{prereqs}{runtime}{requires}{perl}>. If no
+META.json file or no perl version is found, all tests are skipped. If a version
+is found, the test proceeds as if C<all_minimum_version_ok> had been called
+with that version.
+
+=cut
+
+sub all_minimum_version_from_metajson_ok {
+  my ($arg) = @_;
+  $arg ||= {};
+
+  my $Test = Test::Builder->new;
+
+  $Test->plan(skip_all => "META.json could not be found")
+    unless -f 'META.json' and -r _;
+
+  my $metadata_structure = Parse::CPAN::Meta->load_file('META.json');
+
+  $Test->plan(skip_all => "no minimum perl version could be determined")
+    unless my $version
+    = $metadata_structure->{prereqs}{runtime}{requires}{perl};
+
+  all_minimum_version_ok($version, $arg);
+}
+
+=func all_minimum_version_from_meta2_ok
+
+  all_minimum_version_from_meta2_ok(\%arg);
+
+This routine checks for F<META.json> first, and then F<META.yml>.
+Then uses the revelent F<all_minimum_version_from_meta..._ok>.
+If neither are found, all tests are skipped.
+=cut
+
+
+sub all_minimum_version_from_meta2_ok {
+  my ($arg) = @_;
+  $arg ||= {};
+
+  if (-f 'META.json' and -r _ ) {
+    all_minimum_version_from_metajson_ok($arg);
+  }
+  elsif (-f 'META.yml' and -r _) {
+    all_minimum_version_from_metayml_ok($arg);
+  }
+  else {
+    my $Test = Test::Builder->new;
+    $Test->plan(skip_all => "no META files to be found");
+  }
 }
 
 1;

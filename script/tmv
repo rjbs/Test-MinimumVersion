@@ -1,0 +1,40 @@
+#!perl
+
+use 5.010001;
+use strict;
+use warnings FATAL => 'all';
+
+use version;
+our $VERSION = '0.101';
+use English qw( -no_match_vars ); # Avoids reg-ex performance penalty
+local $OUTPUT_AUTOFLUSH = 1;
+
+use Data::Printer { caller_info => 1, colored => 1, };
+
+use FindBin qw($Bin);
+use lib map {"$Bin/$_"} qw( lib ../lib );
+
+use Test::More;
+use Test::Requires {
+	'Perl::MinimumVersion' => 1.32,
+	'Test::MinimumVersion' => 0.101088,
+};
+
+# all_minimum_version_from_metayml_ok();
+#
+# all_minimum_version_ok($version, \%arg);
+# all_minimum_version_from_metayml2_ok();
+#all_minimum_version_from_metajson2_ok();
+all_minimum_version_from_meta2_ok();
+
+my $version = 5.010001;
+my %arg;
+
+# all_minimum_version_ok($version, \%arg);
+#all_minimum_version_ok($version);
+# all_minimum_version_ok();
+
+done_testing();
+
+__END__
+
