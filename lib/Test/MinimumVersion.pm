@@ -12,7 +12,7 @@ BEGIN {
 use parent 0.225 qw(Exporter);
 
 # ABSTRACT: does your code require newer perl than you think?
-use Data::Printer {caller_info => 1, colored => 1,};
+#use Data::Printer {caller_info => 1, colored => 1,};
 
 =head1 SYNOPSIS
 
@@ -27,7 +27,7 @@ Example F<minimum-perl.t>:
 use File::Find::Rule 0.33;
 use File::Find::Rule::Perl 1.13;
 use Perl::MinimumVersion 1.32;    # accuracy
-use YAML::Tiny 1.40;              # bug fixes
+#use YAML::Tiny 1.40;              # bug fixes
 use version 0.9902;
 use Parse::CPAN::Meta 1.4405;
 
@@ -36,8 +36,7 @@ use Test::Builder 0.98;
   minimum_version_ok
   all_minimum_version_ok
   all_minimum_version_from_metayml_ok
-  all_minimum_version_from_metayml2_ok
-  all_minimum_version_from_metajson2_ok
+  all_minimum_version_from_metajson_ok
   all_minimum_version_from_meta2_ok
 );
 
@@ -159,6 +158,24 @@ with that version.
 
 =cut
 
+#sub all_minimum_version_from_metayml_ok {
+#  my ($arg) = @_;
+#  $arg ||= {};
+#
+#  my $Test = Test::Builder->new;
+#
+#  $Test->plan(skip_all => "META.yml could not be found")
+#    unless -f 'META.yml' and -r _;
+#
+#  my $documents = YAML::Tiny->read('META.yml');
+#
+#  $Test->plan(skip_all => "no minimum perl version could be determined")
+#    unless my $version = $documents->[0]->{requires}{perl};
+#
+#  all_minimum_version_ok($version, $arg);
+#}
+
+
 sub all_minimum_version_from_metayml_ok {
   my ($arg) = @_;
   $arg ||= {};
@@ -168,27 +185,9 @@ sub all_minimum_version_from_metayml_ok {
   $Test->plan(skip_all => "META.yml could not be found")
     unless -f 'META.yml' and -r _;
 
-  my $documents = YAML::Tiny->read('META.yml');
-
-  $Test->plan(skip_all => "no minimum perl version could be determined")
-    unless my $version = $documents->[0]->{requires}{perl};
-
-  all_minimum_version_ok($version, $arg);
-}
-
-
-sub all_minimum_version_from_metayml2_ok {
-  my ($arg) = @_;
-  $arg ||= {};
-
-  my $Test = Test::Builder->new;
-
-  $Test->plan(skip_all => "META.yml could not be found")
-    unless -f 'META.yml' and -r _;
-
   my $metadata_structure = Parse::CPAN::Meta->load_file('META.yml');
-  p $metadata_structure;
-  p $metadata_structure->{requires}{perl};
+#  p $metadata_structure;
+#  p $metadata_structure->{requires}{perl};
 
   $Test->plan(skip_all => "no minimum perl version could be determined")
     unless my $version = $metadata_structure->{requires}{perl};
@@ -196,7 +195,7 @@ sub all_minimum_version_from_metayml2_ok {
   all_minimum_version_ok($version, $arg);
 }
 
-sub all_minimum_version_from_metajson2_ok {
+sub all_minimum_version_from_metajson_ok {
   my ($arg) = @_;
   $arg ||= {};
 
@@ -206,8 +205,8 @@ sub all_minimum_version_from_metajson2_ok {
     unless -f 'META.json' and -r _;
 
   my $metadata_structure = Parse::CPAN::Meta->load_file('META.json');
-  p $metadata_structure;
-  p $metadata_structure->{prereqs}{runtime}{requires}{perl};
+#  p $metadata_structure;
+#  p $metadata_structure->{prereqs}{runtime}{requires}{perl};
 
   $Test->plan(skip_all => "no minimum perl version could be determined")
     unless my $version
@@ -222,14 +221,14 @@ sub all_minimum_version_from_meta2_ok {
   $arg ||= {};
 
   if (-f 'META.json' and -r _ ) {
-    all_minimum_version_from_metajson2_ok($arg);
+    all_minimum_version_from_metajson_ok($arg);
   }
   elsif (-f 'META.yml' and -r _) {
-    all_minimum_version_from_metayml2_ok($arg);
+    all_minimum_version_from_metayml_ok($arg);
   }
   else {
     my $Test = Test::Builder->new;
-    $Test->plan(skip_all => "no META files could not be found");
+    $Test->plan(skip_all => "no META files to be found");
   }
 }
 
