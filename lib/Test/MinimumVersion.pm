@@ -27,7 +27,6 @@ Example F<minimum-perl.t>:
 use File::Find::Rule 0.33;
 use File::Find::Rule::Perl 1.13;
 use Perl::MinimumVersion 1.32;    # accuracy
-#use YAML::Tiny 1.40;              # bug fixes
 use version 0.9902;
 use Parse::CPAN::Meta 1.4405;
 
@@ -151,8 +150,8 @@ sub all_minimum_version_ok {
 
   all_minimum_version_from_metayml_ok(\%arg);
 
-This routine checks F<META.yml> for an entry in F<requires> for F<perl>.  If no
-META.yml file or no perl version is found, all tests are skipped.  If a version
+This routine checks F<META.yml> for an entry in F<{requires}{perl}>. If no
+META.yml file or no perl version is found, all tests are skipped. If a version
 is found, the test proceeds as if C<all_minimum_version_ok> had been called
 with that version.
 
@@ -179,8 +178,8 @@ sub all_minimum_version_from_metayml_ok {
 
   all_minimum_version_from_metajson_ok(\%arg);
 
-This routine checks F<META.json> for an entry in F<requires> for F<perl>.  If no
-META.json file or no perl version is found, all tests are skipped.  If a version
+This routine checks F<META.json> for an entry in F<{prereqs}{runtime}{requires}{perl}>. If no
+META.json file or no perl version is found, all tests are skipped. If a version
 is found, the test proceeds as if C<all_minimum_version_ok> had been called
 with that version.
 
@@ -203,6 +202,15 @@ sub all_minimum_version_from_metajson_ok {
 
   all_minimum_version_ok($version, $arg);
 }
+
+=func all_minimum_version_from_meta2_ok
+
+  all_minimum_version_from_meta2_ok(\%arg);
+
+This routine checks for F<META.json> first, and then F<META.yml>.
+Then uses the revelent F<all_minimum_version_from_meta..._ok>.
+If neither are found, all tests are skipped.
+=cut
 
 
 sub all_minimum_version_from_meta2_ok {
