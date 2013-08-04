@@ -158,24 +158,6 @@ with that version.
 
 =cut
 
-#sub all_minimum_version_from_metayml_ok {
-#  my ($arg) = @_;
-#  $arg ||= {};
-#
-#  my $Test = Test::Builder->new;
-#
-#  $Test->plan(skip_all => "META.yml could not be found")
-#    unless -f 'META.yml' and -r _;
-#
-#  my $documents = YAML::Tiny->read('META.yml');
-#
-#  $Test->plan(skip_all => "no minimum perl version could be determined")
-#    unless my $version = $documents->[0]->{requires}{perl};
-#
-#  all_minimum_version_ok($version, $arg);
-#}
-
-
 sub all_minimum_version_from_metayml_ok {
   my ($arg) = @_;
   $arg ||= {};
@@ -186,14 +168,23 @@ sub all_minimum_version_from_metayml_ok {
     unless -f 'META.yml' and -r _;
 
   my $metadata_structure = Parse::CPAN::Meta->load_file('META.yml');
-#  p $metadata_structure;
-#  p $metadata_structure->{requires}{perl};
 
   $Test->plan(skip_all => "no minimum perl version could be determined")
     unless my $version = $metadata_structure->{requires}{perl};
 
   all_minimum_version_ok($version, $arg);
 }
+
+=func all_minimum_version_from_metajson_ok
+
+  all_minimum_version_from_metajson_ok(\%arg);
+
+This routine checks F<META.json> for an entry in F<requires> for F<perl>.  If no
+META.json file or no perl version is found, all tests are skipped.  If a version
+is found, the test proceeds as if C<all_minimum_version_ok> had been called
+with that version.
+
+=cut
 
 sub all_minimum_version_from_metajson_ok {
   my ($arg) = @_;
@@ -205,8 +196,6 @@ sub all_minimum_version_from_metajson_ok {
     unless -f 'META.json' and -r _;
 
   my $metadata_structure = Parse::CPAN::Meta->load_file('META.json');
-#  p $metadata_structure;
-#  p $metadata_structure->{prereqs}{runtime}{requires}{perl};
 
   $Test->plan(skip_all => "no minimum perl version could be determined")
     unless my $version
