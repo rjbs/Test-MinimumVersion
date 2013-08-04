@@ -123,7 +123,7 @@ C<\%arg> is optional.  Valid arguments are:
 sub all_minimum_version_ok {
   my ($version, $arg) = @_;
   $arg ||= {};
-  $arg->{paths} ||= [qw(lib t xt/smoke), glob("*.pm"), glob("*.PL")];
+  $arg->{paths} ||= [qw( script bin lib t )];
 
   my $Test = Test::Builder->new;
 
