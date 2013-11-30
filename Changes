@@ -1,6 +1,8 @@
 Revision history for Test-MinimumVersion
 
 {{$NEXT}}
+
+0.101081  2013-11-30 18:10:02 America/New_York
         - add a "skip" option to all_minimum_version_ok
         - use CPAN::Meta for META.* files, which should do a better
           job at figuring out prereqs
