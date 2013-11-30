@@ -17,7 +17,7 @@ Example F<minimum-perl.t>:
 
 use File::Find::Rule;
 use File::Find::Rule::Perl;
-use Perl::MinimumVersion 1.20; # accuracy
+use Perl::MinimumVersion 1.32; # numerous bugfies
 use Parse::CPAN::Meta;
 use version 0.70;
 
