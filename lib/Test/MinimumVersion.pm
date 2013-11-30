@@ -67,6 +67,14 @@ sub minimum_version_ok {
 
   my $pmv = Perl::MinimumVersion->new($file);
 
+  unless (defined $pmv) {
+    $Test->ok(0, $file);
+    $Test->diag(
+      "$file could not be parsed: " . PPI::Document->errstr
+    );
+    return;
+  }
+
   my $explicit_minimum = $pmv->minimum_explicit_version || 0;
   my $minimum = $pmv->minimum_syntax_version($explicit_minimum) || 0;
 
