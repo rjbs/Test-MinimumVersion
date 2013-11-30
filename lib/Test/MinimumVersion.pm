@@ -106,17 +106,26 @@ Relevant files are found by L<File::Find::Rule::Perl>.
 
 C<\%arg> is optional.  Valid arguments are:
 
-  paths   - in what paths to look for files; defaults to (t, lib, xt/smoke,
-            and any .pm or .PL files in the current working directory)
-            if it contains files, they will be checked
+  paths   - in what paths to look for files; defaults to (bin, script, t, lib,
+            xt/smoke, and any .pm or .PL files in the current working
+            directory) if it contains files, they will be checked
   no_plan - do not plan the tests about to be run
+  skip    - files to skip; this can be useful in weird cases like gigantic
+            files, files falsely detected as Perl, or code that uses
+            a source filter
 
 =cut
 
 sub all_minimum_version_ok {
   my ($version, $arg) = @_;
   $arg ||= {};
-  $arg->{paths} ||= [ qw(lib t xt/smoke), glob ("*.pm"), glob ("*.PL") ];
+  $arg->{paths} ||= [
+    qw(bin script lib t xt/smoke),
+    glob("*.pm"),
+    glob("*.PL"),
+  ];
+
+  $arg->{skip} ||= [];
 
   my $Test = Test::Builder->new;
 
@@ -135,7 +144,8 @@ sub all_minimum_version_ok {
     $Test->plan(tests => scalar @perl_files);
   }
 
-  minimum_version_ok($_, $version) for @perl_files;
+  my %skip = map {; $_ => 1 } @{ $arg->{skip} };
+  minimum_version_ok($_, $version) for grep {; ! $skip{$_} } @perl_files;
 }
 
 =func all_minimum_version_from_metayml_ok
