@@ -1,6 +1,9 @@
 Revision history for Test-MinimumVersion
 
 {{$NEXT}}
+        - add a "skip" option to all_minimum_version_ok
+        - use CPAN::Meta for META.* files, which should do a better
+          job at figuring out prereqs
 
 0.101080  2010-04-18 14:07:08 America/New_York
           more "comparison to undef" bugs fixed (thanks, Tux)
