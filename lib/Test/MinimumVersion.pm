@@ -140,12 +140,14 @@ sub all_minimum_version_ok {
     }
   }
 
+  my %skip = map {; $_ => 1 } @{ $arg->{skip} };
+  @perl_files = grep {; ! $skip{$_} } @perl_files;
+
   unless ($Test->has_plan or $arg->{no_plan}) {
     $Test->plan(tests => scalar @perl_files);
   }
 
-  my %skip = map {; $_ => 1 } @{ $arg->{skip} };
-  minimum_version_ok($_, $version) for grep {; ! $skip{$_} } @perl_files;
+  minimum_version_ok($_, $version) for @perl_files;
 }
 
 =func all_minimum_version_from_metayml_ok
