@@ -15,10 +15,10 @@ Example F<minimum-perl.t>:
 
 =cut
 
+use CPAN::Meta;
 use File::Find::Rule;
 use File::Find::Rule::Perl;
 use Perl::MinimumVersion 1.32; # numerous bugfies
-use Parse::CPAN::Meta;
 use version 0.70;
 
 use Test::Builder;
@@ -170,10 +170,10 @@ sub __from_meta {
   $Test->plan(skip_all => "$fn could not be found")
     unless -f $fn and -r _;
 
-  my $documents = Parse::CPAN::Meta->load_file($fn);
+  my $meta = CPAN::Meta->load_file($fn, { lazy_validation => 1 })->as_struct;
 
   $Test->plan(skip_all => "no minimum perl version could be determined")
-    unless my $version = $documents->[0]->{requires}{perl};
+    unless my $version = $meta->{prereqs}{runtime}{requires}{perl};
 
   all_minimum_version_ok($version, $arg);
 }
