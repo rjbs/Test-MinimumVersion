@@ -112,7 +112,7 @@ C<\%arg> is optional.  Valid arguments are:
   no_plan - do not plan the tests about to be run
   skip    - files to skip; this can be useful in weird cases like gigantic
             files, files falsely detected as Perl, or code that uses
-            a source filter
+            a source filter; this should be an arrayref of filenames
 
 =cut
 
@@ -161,6 +161,13 @@ with that version.
 
 =cut
 
+sub __version_from_meta {
+  my ($fn) = @_;
+
+  my $meta = CPAN::Meta->load_file($fn, { lazy_validation => 1 })->as_struct;
+  my $version = $meta->{prereqs}{runtime}{requires}{perl};
+}
+
 sub __from_meta {
   my ($fn, $arg) = @_;
   $arg ||= {};
@@ -170,15 +177,15 @@ sub __from_meta {
   $Test->plan(skip_all => "$fn could not be found")
     unless -f $fn and -r _;
 
-  my $meta = CPAN::Meta->load_file($fn, { lazy_validation => 1 })->as_struct;
-
   $Test->plan(skip_all => "no minimum perl version could be determined")
-    unless my $version = $meta->{prereqs}{runtime}{requires}{perl};
+    unless my $version = __version_from_meta($fn);
 
   all_minimum_version_ok($version, $arg);
 }
 
-sub all_minimum_version_from_metayml_ok { __from_meta('META.yml', @_); }
+sub all_minimum_version_from_metayml_ok {
+  __from_meta('META.yml', @_);
+}
 
 =func all_minimum_version_from_metajson_ok
 
