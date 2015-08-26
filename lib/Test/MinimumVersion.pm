@@ -27,6 +27,8 @@ use Test::Builder;
   all_minimum_version_ok
   all_minimum_version_from_metayml_ok
   all_minimum_version_from_metajson_ok
+  all_minimum_version_from_mymetayml_ok
+  all_minimum_version_from_mymetajson_ok
 );
 
 sub import {
@@ -207,5 +209,31 @@ called with that version.
 =cut
 
 sub all_minimum_version_from_metajson_ok { __from_meta('META.json', @_); }
+
+=func all_minimum_version_from_mymetayml_ok
+
+  all_minimum_version_from_mymetayml_ok(\%arg);
+
+This routine checks F<MYMETA.yml> for an entry in F<requires> for F<perl>.  If
+no MYMETA.yml file or no perl version is found, all tests are skipped.  If a
+version is found, the test proceeds as if C<all_minimum_version_ok> had been
+called with that version.
+
+=cut
+
+sub all_minimum_version_from_mymetayml_ok { __from_meta('MYMETA.yml', @_); }
+
+=func all_minimum_version_from_mymetajson_ok
+
+  all_minimum_version_from_mymetajson_ok(\%arg);
+
+This routine checks F<MYMETA.json> for an entry in F<requires> for F<perl>.  If
+no MYMETA.json file or no perl version is found, all tests are skipped.  If a
+version is found, the test proceeds as if C<all_minimum_version_ok> had been
+called with that version.
+
+=cut
+
+sub all_minimum_version_from_mymetajson_ok { __from_meta('MYMETA.json', @_); }
 
 1;
