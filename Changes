@@ -1,6 +1,8 @@
 Revision history for Test-MinimumVersion
 
 {{$NEXT}}
+
+0.101082  2015-12-06 23:40:03-05:00 America/New_York
         - add all_minimum_version_from_mymetayml_ok (thanks, Steve Hay!)
         - add all_minimum_version_from_mymetajson_ok (thanks, Steve Hay!)
 
