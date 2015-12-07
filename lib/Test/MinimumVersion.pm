@@ -2,8 +2,9 @@ use 5.006;
 use strict;
 use warnings;
 package Test::MinimumVersion;
-use base 'Exporter';
+
 # ABSTRACT: does your code require newer perl than you think?
+use base 'Exporter';
 
 =head1 SYNOPSIS
 

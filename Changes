@@ -1,6 +1,8 @@
 Revision history for Test-MinimumVersion
 
 {{$NEXT}}
+        - add all_minimum_version_from_mymetayml_ok (thanks, Steve Hay!)
+        - add all_minimum_version_from_mymetajson_ok (thanks, Steve Hay!)
 
 0.101081  2013-11-30 18:10:02 America/New_York
         - add a "skip" option to all_minimum_version_ok
