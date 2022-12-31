@@ -1,4 +1,4 @@
-use 5.006;
+use v5.8;
 use strict;
 use warnings;
 package Test::MinimumVersion;
@@ -46,7 +46,7 @@ sub import {
 
 sub _objectify_version {
   my ($version) = @_;
-  $version = eval { $version->isa('version') } 
+  $version = eval { $version->isa('version') }
            ? $version
            : version->new($version);
 }
