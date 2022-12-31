@@ -1,2 +1,3 @@
-Test-MinimumVersion-*
 .build
+.gitnxtver_cache
+Test-MinimumVersion-*
